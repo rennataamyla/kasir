@@ -16,6 +16,6 @@ $routes->delete('/produk/hapus/(:num)', 'product::delete/$1');
 $routes->get('/pelanggan', 'Pelanggan::index');
 $routes->get('/pelanggan/tampil', 'pelanggan::tampil_pelanggan');
 $routes->post('/pelanggan/simpan', 'pelanggan::simpan_pelanggan');
-$routes->get('/pelanggan/edit', 'pelanggan::edit_produk');
+$routes->get('/pelanggan/edit', 'pelanggan::edit_pelanggan');
 $routes->post('/pelanggan/update', 'pelanggan::perbarui');
 $routes->delete('/pelanggan/hapus/(:num)', 'pelanggan::delete/$1');

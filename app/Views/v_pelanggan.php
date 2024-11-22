@@ -101,129 +101,181 @@
 <script src="<?=base_url('asset/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js')?>"></script>
 <script>
     function tampilPelanggan() {
-        $.ajax({
-            url: '<?= base_url("pelanggan/tampil") ?>',
-            type: "GET",
-            dataType: "json",
-            success: function(response) {
-                var pelangganTable = $('#pelangganTabel tbody');
-                pelangganTable.empty();
-                var no = 1;
-                response.pelanggan.forEach(function(item) {
-                    pelangganTable.append(`
-                        <tr>
-                            <td>${no++}</td>
-                            <td>${item.nama_pelanggan}</td>
-                            <td>${item.alamat}</td>
-                            <td>${item.no_tlp}</td>
-                            <td>
-                                <button class="btn btn-warning btn-edit editPelanggan" data-id="${item.id}">Edit</button>
-                                <button class="btn btn-danger btn-hapus" data-id="${item.id}">Hapus</button>
-                            </td>
-                        </tr>
-                    `);
-                });
-            },
-            error: function() {
-                alert("Gagal memuat data pelanggan.");
-            }
-        });
-    }
+        $.ajax({ //Digunakan untuk melakukan request ke server. 
+                url: '<?= base_url('/pelanggan/tampil'); ?>', // URL yang digunakan adalah base url ini  , yang mengarah pada endpoint produk/tampil di server.
+                type: "GET",
+                dataType: 'json', //Mengharuskan respons server untuk berupa format JSON.
+                success: function(hasil) { 
+                    console.log(hasil);//Jika request berhasil, data produk yang diterima akan diproses dan ditampilkan dalam tabel.
+                    if (hasil.status === "success") {
+                        var pelangganTable = $('#pelangganTabel tbody');
+                        pelangganTable.empty();
+                        var produk = hasil.produk;
+                        var no = 1;
 
-    $(document).ready(function() {
-        tampilPelanggan();
-
-        $("#simpanPelanggan").click(function() {
-            var data = {
-                nama_pelanggan: $("#namaPelanggan").val(),
-                alamat: $("#alamat").val(),
-                no_tlp: $("#no_tlp").val()
-            };
-
-            $.ajax({
-                url: '<?= base_url("pelanggan/simpan") ?>',
-                type: "POST",
-                data: data,
-                dataType: "json",
-                success: function(response) {
-                    if (response.status === "success") {
-                        Swal.fire("Berhasil!", "Data pelanggan berhasil disimpan.", "success");
-                        $('#modalTambahPelanggan').modal('hide');
-                        tampilPelanggan();
+                        produk.forEach(function(item) { //Looping setiap produk untuk menambahkannya ke dalam tabel.
+                            var row = `<tr>
+                                <td>${no}</td>
+                                <td>${item.nama_pelanggan}</td>
+                                <td>${item.alamat}</td>
+                                <td>${item.no_tlp}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-edit editPelanggan" data-bs-toggle="modal" data-bs-target="#modalEditPelanggan" data-id="${item.id_pelanggan}"><i class="fa-solid fa-pen-to-square"></i>Edit</button> 
+                                    <button class="btn btn-danger btn-hapus hapusPelanggan " data-id="${item.id_pelanggan}"><i class="fa-solid fa-trash-can"></i>Hapus</button>
+                                </td>
+                            </tr>`;
+                            pelangganTable.append(row);
+                            no++;
+                        });
                     } else {
-                        Swal.fire("Gagal!", "Data pelanggan gagal disimpan.", "error");
+                        alert('Gagal mengambil data.');
                     }
                 },
-                error: function() {
-                    Swal.fire("Error!", "Terjadi kesalahan server.", "error");
+                error: function(xhr, status, error) {
+                    alert('Terjadi kesalahan: ' + error);
                 }
             });
-        });
+        }
 
-        $(document).on("click", ".editPelanggan", function() {
-            var id = $(this).data("id");
-            $.ajax({
-                url: '<?= base_url("pelanggan/edit") ?>/' + id,
-                type: "GET",
-                dataType: "json",
-                success: function(data) {
-                    $("#editPelangganId").val(data.id);
-                    $("#editNamaPelanggan").val(data.nama_pelanggan);
-                    $("#editAlamat").val(data.alamat);
-                    $("#editNoTelepon").val(data.no_tlp);
-                    $("#modalEditPelanggan").modal("show");
-                }
-            });
-        });
 
-        $("#updatePelanggan").click(function() {
-            var data = {
-                id: $("#editPelangganId").val(),
-                nama_pelanggan: $("#editNamaPelanggan").val(),
-                alamat: $("#editAlamat").val(),
-                no_tlp: $("#editno_tlp").val()
-            };
+        $(document).ready(function() { // Panggil fungsi saat halaman dimuat
+            tampilPelanggan(); //Memanggil fungsi untuk menampilkan daftar produk yang ada di tabel.
 
-            $.ajax({
-                url: '<?= base_url("pelanggan/update") ?>',
+            $("#simpanPelanggan").on("click", function() { // Event handler untuk tombol "Simpan" di modal tambah produk. Ketika tombol ini diklik, data yang dimasukkan ke dalam form akan dikirim ke server menggunakan AJAX.
+                var formData = { //Mengambil nilai dari input form untuk nama produk, harga, dan stok.
+                    nama_pelanggan: $("#namaPelanggan").val(),
+                    alamat: $('#alamat').val(),
+                    no_tlp: $('#noTelepon').val()
+                };
+
+                $.ajax({
+                url: '<?= base_url('/pelanggan/simpan'); ?>',
                 type: "POST",
-                data: data,
-                dataType: "json",
-                success: function(response) {
-                    if (response.status === "success") {
-                        Swal.fire("Berhasil!", "Data pelanggan berhasil diperbarui.", "success");
-                        $('#modalEditPelanggan').modal('hide');
-                        tampilPelanggan();
+                data: formData,
+                dataType: 'json',
+                success: function(hasil) {
+                    if (hasil.status === 'success') {
+                        Swal.fire({
+                            title: "Good job!",
+                            text: "Pelanggan berhasil disimpan!",
+                            icon: "success"
+                        });
+                        $('#modalTambahPelanggan').modal("hide");
+                        $('#formTambahPelanggan')[0].reset();  // Reset form setelah simpan
+                        tampilPelanggan();  // Update tampilan daftar pelanggan
                     } else {
-                        Swal.fire("Gagal!", "Data pelanggan gagal diperbarui.", "error");
+                        alert('Gagal menyimpan data: ' + JSON.stringify(hasil.errors));
                     }
+                },
+                error: function(xhr, status, error) {
+                    alert('Terjadi kesalahan: ' + error);
                 }
             });
         });
 
-        $(document).on("click", ".btn-hapus", function() {
-            var id = $(this).data("id");
-            Swal.fire({
-                title: "Yakin?",
-                text: "Data pelanggan akan dihapus!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Ya, Hapus!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '<?= base_url("pelanggan/hapus") ?>/' + id,
-                        type: "POST",
-                        success: function(response) {
-                            Swal.fire("Berhasil!", "Data pelanggan berhasil dihapus.", "success");
-                            tampilPelanggan();
+            $(document).on('click', '.hapusPelanggan', function() { //Event handler ketika tombol hapus diklik. ID produk yang akan dihapus diambil dari atribut data-id.
+                var row = $(this).closest('tr');
+                document.get
+                var id = $(this).data('id');
+                if (confirm("Apakah Anda yakin ingin menghapus produk ini?")) {//Memunculkan konfirmasi kepada pengguna untuk memastikan apakah mereka yakin ingin menghapus produk.
+                    Swal.fire({
+                        title: "Are you sure?",
+                        text: "You won't be able to revert this!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, delete it!"
+                        }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                            title: "Deleted!",
+                            text: "Your file has been deleted.",
+                            icon: "success"
+                            });
+                        }
+                        });
+                    $.ajax({ //Memunculkan konfirmasi kepada pengguna untuk memastikan apakah mereka yakin ingin menghapus produk.
+                        url: '<?= base_url('/pelanggan/hapus/') ?>' + id,
+                        type: "DELETE",
+                        dataType: 'json',
+                        success: function(response) { //Jika berhasil, baris produk akan dihapus dari tabel dan tabel diperbarui.
+                            console.log(response);
+                            if (response.success) {
+                                row.remove();
+                                alert("Produk berhasil dihapus.");
+                                tampilPelanggan();
+                            } else {
+                                alert("Gagal menghapus produk.");
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            alert("Terjadi kesalahan saat menghapus: " + error);
                         }
                     });
                 }
-            });
+            });
+
+            $(document).on("click", ".editPelanggan", function(){ //Event handler untuk tombol edit produk. Ketika tombol edit diklik, ID produk diambil dan digunakan untuk mengambil data produk dari server untuk diedit.
+                    var id = $(this).data("id"); // Ambil ID dari tombol yang diklik
+                    $.ajax({//Request GET ke server untuk mengambil data produk berdasarkan ID yang dikirimkan.
+                        url: '<?= base_url('/pelanggan/edit')?>',
+                        type: 'GET',
+                        data: { id: id }, // Kirim ID ke server
+                        dataType: 'json',
+                        success: function(hasil) {
+                            console.log(hasil);
+                            if (hasil) { // Isi input modal dengan data produk
+                                $("#editPelangganId").val(hasil.id_pelanggan); // Pastikan ID diisi
+                                $("#editNamaPelanggan").val(hasil.nama_pelanggan);
+                                $("#editAlamat").val(hasil.alamat);
+                                $("#editNoTelepon").val(hasil.no_tlp);
+                                $("#modalEditPelanggan").modal("show"); //Menampilkan modal edit produk dengan data yang sudah diisi.
+                            } else {
+                                alert('Gagal mengambil data untuk diedit.');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            alert('Terjadi kesalahan: ' + error);
+                        }
+                        
+                    });
+                });
         });
-    });
-</script>
+        //klik event untuk tombol update produk"
+        $("#updatePelanggan").on("click", function(e){
+            var form={
+                nama_pelanggan: $("#editNamaPelanggan").val(),
+                alamat: $("#editAlamat").val(),
+                no_tlp: $("#editNoTelepon").val(),
+                id_pelanggan:$('#editPelangganId').val()
+            }   
+
+            $.ajax({
+                url:"<?=base_url("/pelanggan/update")?>",
+                data:form,
+                dataType:'json',
+                type:'POST',
+                success:function(hasil){
+                    Swal.fire({
+                                title: "Good job!",
+                                text: "You clicked the button!",
+                                icon: "success"
+                                });
+                    $("#modalEditPelanggan").modal("hide");
+                    tampilPelanggan()
+                },
+
+            })
+        });
+
+   
+        $(document).on("click", ".hapusProduk", function(){ //Tombol ini diidentifikasi dengan kelas hapusProduk yang ada di dalam baris produk.
+            var id = $(this).data("id"); //Mengambil ID produk yang ingin dihapus dari atribut data-id tombol hapus yang diklik.
+            if (confirm("apakah anda yakin untuk menghapus data ini?")){ //Menampilkan dialog konfirmasi kepada pengguna untuk memastikan bahwa mereka benar-benar ingin menghapus produk.
+
+            }
+        });</script>
     <script src="<?=base_url('asset/bootstrap-5.0.2-dist/js/bootstrap.min.js')?>"></script>
     <script src="<?=base_url('asset/fontawesome-free-6.6.0-web/js/all.min.js')?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

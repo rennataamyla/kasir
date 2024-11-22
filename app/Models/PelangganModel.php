@@ -7,12 +7,12 @@ use CodeIgniter\Model;
 class PelangganModel extends Model
 {
     protected $table            = 'tb_pelanggan';
-    protected $primaryKey       = 'pelanggan_id';
+    protected $primaryKey       = 'id_pelanggan';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['nama_pelanggan', 'alamat', 'NoTelepon'];
+    protected $allowedFields    = ['nama_pelanggan', 'alamat', 'no_tlp'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
